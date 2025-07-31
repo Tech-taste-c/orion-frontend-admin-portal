@@ -139,7 +139,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
               </Button>
               <Button className="w-full justify-start" variant="outline">
                 <TrendingUp className="h-4 w-4 mr-2" />
-                Certification Management
+                Manage Pending Submission
               </Button>
             </CardContent>
           </Card>
