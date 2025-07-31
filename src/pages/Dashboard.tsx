@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, BookOpen, TrendingUp, Settings, LogOut } from 'lucide-react';
@@ -6,13 +5,14 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 import Students from './Students';
 import Courses from './Courses';
+import Certifications from './Certifications';
 
 interface DashboardProps {
   onLogout: () => void;
 }
 
 const Dashboard = ({ onLogout }: DashboardProps) => {
-  const [currentPage, setCurrentPage] = useState<'dashboard' | 'students' | 'courses'>('dashboard');
+  const [currentPage, setCurrentPage] = useState<'dashboard' | 'students' | 'courses' | 'certifications'>('dashboard');
 
   const handleLogout = () => {
     toast.success('Logged out successfully');
@@ -34,12 +34,20 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
     setCurrentPage('courses');
   };
 
+  const handleManageCertifications = () => {
+    setCurrentPage('certifications');
+  };
+
   if (currentPage === 'students') {
     return <Students onBack={() => setCurrentPage('dashboard')} />;
   }
 
   if (currentPage === 'courses') {
     return <Courses onBack={() => setCurrentPage('dashboard')} />;
+  }
+
+  if (currentPage === 'certifications') {
+    return <Certifications onBack={() => setCurrentPage('dashboard')} />;
   }
 
   return (
@@ -121,7 +129,11 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                 <BookOpen className="h-4 w-4 mr-2" />
                 Course Management
               </Button>
-              <Button className="w-full justify-start" variant="outline">
+              <Button 
+                className="w-full justify-start" 
+                variant="outline"
+                onClick={handleManageCertifications}
+              >
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Certification Management
               </Button>
