@@ -4,8 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import { ArrowLeft, Search, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Search, Eye, EyeOff, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import CreateCertification from './CreateCertification';
 
 interface CertificationsProps {
   onBack: () => void;
@@ -40,6 +41,7 @@ const Certifications = ({ onBack }: CertificationsProps) => {
   const [certificates, setCertificates] = useState<Certificate[]>(mockCertificates);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const certificatesPerPage = 8;
 
   // Filter certificates based on search term
@@ -77,6 +79,18 @@ const Certifications = ({ onBack }: CertificationsProps) => {
     return Math.round((passed / attempted) * 100);
   };
 
+  const handleCreateCertification = () => {
+    setShowCreateForm(true);
+  };
+
+  const handleBackToList = () => {
+    setShowCreateForm(false);
+  };
+
+  if (showCreateForm) {
+    return <CreateCertification onBack={handleBackToList} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -90,6 +104,10 @@ const Certifications = ({ onBack }: CertificationsProps) => {
               </Button>
               <h1 className="text-xl font-semibold text-gray-900">Certification Management</h1>
             </div>
+            <Button onClick={handleCreateCertification} className="bg-orion-blue hover:bg-orion-blue-dark">
+              <Plus className="h-4 w-4 mr-2" />
+              Create Certification
+            </Button>
           </div>
         </div>
       </header>
