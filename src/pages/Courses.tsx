@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -112,7 +111,6 @@ const Courses = ({ onBack }: CoursesProps) => {
                   <TableRow>
                     <TableHead>Course Name</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Published</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -120,15 +118,6 @@ const Courses = ({ onBack }: CoursesProps) => {
                   {currentCourses.map((course) => (
                     <TableRow key={course.id}>
                       <TableCell className="font-medium">{course.name}</TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          course.status === 'active' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {course.status}
-                        </span>
-                      </TableCell>
                       <TableCell>
                         <div className="flex items-center">
                           {course.published ? (
@@ -165,15 +154,6 @@ const Courses = ({ onBack }: CoursesProps) => {
                 <div key={course.id} className="bg-white border rounded-lg p-4 space-y-3">
                   <div className="flex justify-between items-start">
                     <h3 className="font-medium text-gray-900">{course.name}</h3>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      course.status === 'active' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {course.status}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       {course.published ? (
                         <>
@@ -187,14 +167,15 @@ const Courses = ({ onBack }: CoursesProps) => {
                         </>
                       )}
                     </div>
-                    <Button
-                      variant={course.status === 'active' ? 'destructive' : 'default'}
-                      size="sm"
-                      onClick={() => handleDeactivateCourse(course.id, course.name)}
-                    >
-                      {course.status === 'active' ? 'Deactivate' : 'Activate'}
-                    </Button>
                   </div>
+                  <Button
+                    variant={course.status === 'active' ? 'destructive' : 'default'}
+                    size="sm"
+                    onClick={() => handleDeactivateCourse(course.id, course.name)}
+                    className="w-full"
+                  >
+                    {course.status === 'active' ? 'Deactivate' : 'Activate'}
+                  </Button>
                 </div>
               ))}
             </div>

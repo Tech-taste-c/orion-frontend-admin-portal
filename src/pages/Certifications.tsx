@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -133,23 +132,16 @@ const Certifications = ({ onBack }: CertificationsProps) => {
                       <TableCell className="font-medium">{certificate.name}</TableCell>
                       <TableCell>{certificate.courseName}</TableCell>
                       <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            certificate.status === 'active' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {certificate.status}
-                          </span>
+                        <div className="flex items-center">
                           {certificate.published ? (
                             <>
-                              <Eye className="h-4 w-4 text-green-600" />
-                              <span className="text-green-600 text-xs">Published</span>
+                              <Eye className="h-4 w-4 text-green-600 mr-1" />
+                              <span className="text-green-600">Published</span>
                             </>
                           ) : (
                             <>
-                              <EyeOff className="h-4 w-4 text-gray-400" />
-                              <span className="text-gray-500 text-xs">Draft</span>
+                              <EyeOff className="h-4 w-4 text-gray-400 mr-1" />
+                              <span className="text-gray-500">Draft</span>
                             </>
                           )}
                         </div>
@@ -188,32 +180,23 @@ const Certifications = ({ onBack }: CertificationsProps) => {
                 <div key={certificate.id} className="bg-white border rounded-lg p-4 space-y-3">
                   <div className="flex justify-between items-start">
                     <h3 className="font-medium text-gray-900 text-sm">{certificate.name}</h3>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      certificate.status === 'active' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {certificate.status}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600">{certificate.courseName}</p>
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center">
                       {certificate.published ? (
                         <>
-                          <Eye className="h-3 w-3 text-green-600" />
-                          <span className="text-green-600">Published</span>
+                          <Eye className="h-4 w-4 text-green-600 mr-1" />
+                          <span className="text-green-600 text-xs">Published</span>
                         </>
                       ) : (
                         <>
-                          <EyeOff className="h-3 w-3 text-gray-400" />
-                          <span className="text-gray-500">Draft</span>
+                          <EyeOff className="h-4 w-4 text-gray-400 mr-1" />
+                          <span className="text-gray-500 text-xs">Draft</span>
                         </>
                       )}
                     </div>
-                    <div className="text-gray-600">
-                      {certificate.studentsPassed}/{certificate.studentsAttempted} passed ({calculatePassRate(certificate.studentsPassed, certificate.studentsAttempted)}%)
-                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600">{certificate.courseName}</p>
+                  <div className="text-xs text-gray-600">
+                    {certificate.studentsPassed}/{certificate.studentsAttempted} passed ({calculatePassRate(certificate.studentsPassed, certificate.studentsAttempted)}%)
                   </div>
                   <Button
                     variant={certificate.status === 'active' ? 'destructive' : 'default'}
