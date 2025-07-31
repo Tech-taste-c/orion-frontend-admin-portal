@@ -18,6 +18,7 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
+  PaginationEllipsis,
 } from '@/components/ui/pagination';
 import { ArrowLeft, Search, Eye } from 'lucide-react';
 import { toast } from 'sonner';
@@ -38,9 +39,9 @@ interface Submission {
 const PendingSubmissions = ({ onBack }: PendingSubmissionsProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 5; // Reduced to make pagination more visible
 
-  // Mock data for submissions
+  // Mock data for submissions - expanded to show pagination
   const mockSubmissions: Submission[] = [
     {
       id: 1,
@@ -106,14 +107,47 @@ const PendingSubmissions = ({ onBack }: PendingSubmissionsProps) => {
       score: 52,
       submittedDate: '2024-01-08',
     },
+    {
+      id: 9,
+      courseName: 'Node.js Backend Development',
+      studentName: 'Michael Thompson',
+      status: 'pass',
+      score: 87,
+      submittedDate: '2024-01-07',
+    },
+    {
+      id: 10,
+      courseName: 'Python for Data Science',
+      studentName: 'Anna Rodriguez',
+      status: 'pass',
+      score: 94,
+      submittedDate: '2024-01-06',
+    },
+    {
+      id: 11,
+      courseName: 'Machine Learning Basics',
+      studentName: 'Chris Wilson',
+      status: 'fail',
+      score: 42,
+      submittedDate: '2024-01-05',
+    },
+    {
+      id: 12,
+      courseName: 'DevOps Fundamentals',
+      studentName: 'Jessica Lee',
+      status: 'pass',
+      score: 81,
+      submittedDate: '2024-01-04',
+    },
   ];
 
   // Filter submissions based on search term
   const filteredSubmissions = mockSubmissions.filter(submission =>
-    submission.courseName.toLowerCase().includes(searchTerm.toLowerCase())
+    submission.courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    submission.studentName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Paginate filtered submissions
+  // Calculate pagination
   const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedSubmissions = filteredSubmissions.slice(startIndex, startIndex + itemsPerPage);
@@ -124,6 +158,16 @@ const PendingSubmissions = ({ onBack }: PendingSubmissionsProps) => {
 
   const getStatusColor = (status: 'pass' | 'fail') => {
     return status === 'pass' ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50';
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Reset to first page when searching
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
   };
 
   return (
@@ -161,12 +205,9 @@ const PendingSubmissions = ({ onBack }: PendingSubmissionsProps) => {
               <div className="relative flex-1 max-w-sm">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="Search by course name..."
+                  placeholder="Search by course or student name..."
                   value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setCurrentPage(1); // Reset to first page when searching
-                  }}
+                  onChange={(e) => handleSearch(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -194,7 +235,7 @@ const PendingSubmissions = ({ onBack }: PendingSubmissionsProps) => {
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(submission.status)}`}
                         >
-                          {submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
+                          {submission.status === 'pass' ? 'Pass' : 'Fail'}
                         </span>
                       </TableCell>
                       <TableCell>{submission.score}%</TableCell>
@@ -215,42 +256,61 @@ const PendingSubmissions = ({ onBack }: PendingSubmissionsProps) => {
               </Table>
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-6">
-                <Pagination>
-                  <PaginationContent>
-                    {currentPage > 1 && (
-                      <PaginationItem>
-                        <PaginationPrevious 
-                          onClick={() => setCurrentPage(currentPage - 1)}
-                          className="cursor-pointer"
-                        />
-                      </PaginationItem>
-                    )}
-                    
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <PaginationItem key={page}>
-                        <PaginationLink
-                          onClick={() => setCurrentPage(page)}
-                          isActive={currentPage === page}
-                          className="cursor-pointer"
-                        >
-                          {page}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
-                    
-                    {currentPage < totalPages && (
-                      <PaginationItem>
-                        <PaginationNext 
-                          onClick={() => setCurrentPage(currentPage + 1)}
-                          className="cursor-pointer"
-                        />
-                      </PaginationItem>
-                    )}
-                  </PaginationContent>
-                </Pagination>
+            {/* Pagination - Always show when there are results */}
+            {filteredSubmissions.length > 0 && (
+              <div className="flex items-center justify-between mt-6">
+                <div className="text-sm text-gray-700">
+                  Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredSubmissions.length)} of {filteredSubmissions.length} results
+                </div>
+                
+                {totalPages > 1 && (
+                  <Pagination>
+                    <PaginationContent>
+                      {currentPage > 1 && (
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            className="cursor-pointer"
+                          />
+                        </PaginationItem>
+                      )}
+                      
+                      {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                        let pageNumber;
+                        if (totalPages <= 5) {
+                          pageNumber = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNumber = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNumber = totalPages - 4 + i;
+                        } else {
+                          pageNumber = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <PaginationItem key={pageNumber}>
+                            <PaginationLink
+                              onClick={() => handlePageChange(pageNumber)}
+                              isActive={currentPage === pageNumber}
+                              className="cursor-pointer"
+                            >
+                              {pageNumber}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      
+                      {currentPage < totalPages && (
+                        <PaginationItem>
+                          <PaginationNext 
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            className="cursor-pointer"
+                          />
+                        </PaginationItem>
+                      )}
+                    </PaginationContent>
+                  </Pagination>
+                )}
               </div>
             )}
 
