@@ -7,6 +7,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { ArrowLeft, Search, Eye, EyeOff, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import CreateCertification from './CreateCertification';
+import Header from '@/components/Header';
 
 interface CertificationsProps {
   onBack: () => void;
@@ -93,27 +94,21 @@ const Certifications = ({ onBack }: CertificationsProps) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" onClick={onBack}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-              <h1 className="text-xl font-semibold text-gray-900">Certification Management</h1>
-            </div>
-            <Button onClick={handleCreateCertification} className="bg-orion-blue hover:bg-orion-blue-dark">
-              <Plus className="h-4 w-4 mr-2" />
-              Create Certification
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Header title="Certification Management" />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <Button variant="ghost" size="sm" onClick={onBack}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+          <Button onClick={handleCreateCertification} className="bg-orion-blue hover:bg-orion-blue-dark">
+            <Plus className="h-4 w-4 mr-2" />
+            Create Certification
+          </Button>
+        </div>
+
         <Card>
           <CardHeader>
             <CardTitle>All Certifications</CardTitle>
