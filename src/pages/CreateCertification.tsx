@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +40,7 @@ const CreateCertification = ({ onBack }: CreateCertificationProps) => {
   const [showExamBuilder, setShowExamBuilder] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [passMark, setPassMark] = useState(70);
+  const [timeLimit, setTimeLimit] = useState(60);
 
   const handleCreateExam = () => {
     if (!certificationName || !selectedCourse) {
@@ -225,16 +225,28 @@ const CreateCertification = ({ onBack }: CreateCertificationProps) => {
                   <CardTitle>Exam Settings</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="pass-mark">Pass Mark (%)</Label>
-                    <Input
-                      id="pass-mark"
-                      type="number"
-                      min="1"
-                      max="100"
-                      value={passMark}
-                      onChange={(e) => setPassMark(Number(e.target.value))}
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="pass-mark">Pass Mark (%)</Label>
+                      <Input
+                        id="pass-mark"
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={passMark}
+                        onChange={(e) => setPassMark(Number(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="time-limit">Time Limit (minutes)</Label>
+                      <Input
+                        id="time-limit"
+                        type="number"
+                        min="1"
+                        value={timeLimit}
+                        onChange={(e) => setTimeLimit(Number(e.target.value))}
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
