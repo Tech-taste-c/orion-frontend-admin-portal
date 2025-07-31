@@ -126,7 +126,7 @@ const ExamResults = ({ submissionId, onBack }: ExamResultsProps) => {
 
   const handleIssueCertificate = () => {
     setCertificateIssued(true);
-    toast.success('Certificate issued successfully!');
+    toast.success('Certificate issued and sent an email to student! It will appear in student portal for student to download.');
   };
 
   return (
