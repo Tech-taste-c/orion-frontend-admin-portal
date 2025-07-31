@@ -5,13 +5,14 @@ import { Users, BookOpen, TrendingUp, Settings, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import Students from './Students';
+import Courses from './Courses';
 
 interface DashboardProps {
   onLogout: () => void;
 }
 
 const Dashboard = ({ onLogout }: DashboardProps) => {
-  const [currentPage, setCurrentPage] = useState<'dashboard' | 'students'>('dashboard');
+  const [currentPage, setCurrentPage] = useState<'dashboard' | 'students' | 'courses'>('dashboard');
 
   const handleLogout = () => {
     toast.success('Logged out successfully');
@@ -29,8 +30,16 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
     setCurrentPage('students');
   };
 
+  const handleManageCourses = () => {
+    setCurrentPage('courses');
+  };
+
   if (currentPage === 'students') {
     return <Students onBack={() => setCurrentPage('dashboard')} />;
+  }
+
+  if (currentPage === 'courses') {
+    return <Courses onBack={() => setCurrentPage('dashboard')} />;
   }
 
   return (
@@ -104,7 +113,11 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                 <Users className="h-4 w-4 mr-2" />
                 Manage Students
               </Button>
-              <Button className="w-full justify-start" variant="outline">
+              <Button 
+                className="w-full justify-start" 
+                variant="outline"
+                onClick={handleManageCourses}
+              >
                 <BookOpen className="h-4 w-4 mr-2" />
                 Course Management
               </Button>
