@@ -11,7 +11,6 @@ import Header from '@/components/Header';
 
 interface CertificationsProps {
   onBack: () => void;
-  onLogout: () => void;
 }
 
 interface Certificate {
@@ -39,7 +38,7 @@ const mockCertificates: Certificate[] = [
   { id: 12, name: 'Programming Fundamentals Certificate', courseName: 'Introduction to Programming', published: true, studentsAttempted: 156, studentsPassed: 142, status: 'active' },
 ];
 
-const Certifications = ({ onBack, onLogout }: CertificationsProps) => {
+const Certifications = ({ onBack }: CertificationsProps) => {
   const [certificates, setCertificates] = useState<Certificate[]>(mockCertificates);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -95,7 +94,7 @@ const Certifications = ({ onBack, onLogout }: CertificationsProps) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header title="Certification Management" onLogout={onLogout} />
+      <Header title="Certification Management" onLogout={() => {}} />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
