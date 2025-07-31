@@ -7,6 +7,7 @@ import Students from './Students';
 import Courses from './Courses';
 import Certifications from './Certifications';
 import PendingSubmissions from './PendingSubmissions';
+import Header from '@/components/Header';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -44,48 +45,24 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
   };
 
   if (currentPage === 'students') {
-    return <Students onBack={() => setCurrentPage('dashboard')} />;
+    return <Students onBack={() => setCurrentPage('dashboard')} onLogout={onLogout} />;
   }
 
   if (currentPage === 'courses') {
-    return <Courses onBack={() => setCurrentPage('dashboard')} />;
+    return <Courses onBack={() => setCurrentPage('dashboard')} onLogout={onLogout} />;
   }
 
   if (currentPage === 'certifications') {
-    return <Certifications onBack={() => setCurrentPage('dashboard')} />;
+    return <Certifications onBack={() => setCurrentPage('dashboard')} onLogout={onLogout} />;
   }
 
   if (currentPage === 'pending-submissions') {
-    return <PendingSubmissions onBack={() => setCurrentPage('dashboard')} />;
+    return <PendingSubmissions onBack={() => setCurrentPage('dashboard')} onLogout={onLogout} />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <img 
-                src="/lovable-uploads/d7cf6600-6096-48ef-92ad-8a265d143985.png" 
-                alt="Orion Technical Solutions" 
-                className="h-8 w-auto"
-              />
-              <h1 className="text-xl font-semibold text-gray-900">Admin Portal</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm">
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
-              </Button>
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header title="Admin Portal" onLogout={onLogout} />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

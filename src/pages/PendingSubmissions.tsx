@@ -20,9 +20,11 @@ import {
 } from '@/components/ui/pagination';
 import { ArrowLeft, Search, Eye } from 'lucide-react';
 import ExamResults from './ExamResults';
+import Header from '@/components/Header';
 
 interface PendingSubmissionsProps {
   onBack: () => void;
+  onLogout: () => void;
 }
 
 interface Submission {
@@ -34,7 +36,7 @@ interface Submission {
   submittedDate: string;
 }
 
-const PendingSubmissions = ({ onBack }: PendingSubmissionsProps) => {
+const PendingSubmissions = ({ onBack, onLogout }: PendingSubmissionsProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<number | null>(null);
@@ -170,39 +172,25 @@ const PendingSubmissions = ({ onBack }: PendingSubmissionsProps) => {
     return (
       <ExamResults 
         submissionId={selectedSubmissionId} 
-        onBack={() => setSelectedSubmissionId(null)} 
+        onBack={() => setSelectedSubmissionId(null)}
+        onLogout={onLogout}
       />
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
-            <Button
-              variant="ghost"
-              onClick={onBack}
-              className="mr-4"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-            <div className="flex items-center space-x-4">
-              <img 
-                src="/lovable-uploads/d7cf6600-6096-48ef-92ad-8a265d143985.png" 
-                alt="Orion Technical Solutions" 
-                className="h-8 w-auto"
-              />
-              <h1 className="text-xl font-semibold text-gray-900">Pending Submissions</h1>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header title="Pending Submissions" onLogout={onLogout} />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-4">
+          <Button variant="ghost" onClick={onBack}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+        </div>
+
         <Card>
           <CardHeader>
             <CardTitle>Exam Submissions</CardTitle>

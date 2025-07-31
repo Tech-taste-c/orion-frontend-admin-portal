@@ -6,9 +6,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { ArrowLeft, Search, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
+import Header from '@/components/Header';
 
 interface CoursesProps {
   onBack: () => void;
+  onLogout: () => void;
 }
 
 interface Course {
@@ -33,7 +35,7 @@ const mockCourses: Course[] = [
   { id: 12, name: 'DevOps Practices', published: true, status: 'active' },
 ];
 
-const Courses = ({ onBack }: CoursesProps) => {
+const Courses = ({ onBack, onLogout }: CoursesProps) => {
   const [courses, setCourses] = useState<Course[]>(mockCourses);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -71,23 +73,17 @@ const Courses = ({ onBack }: CoursesProps) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" onClick={onBack}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-              <h1 className="text-xl font-semibold text-gray-900">Course Management</h1>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header title="Course Management" onLogout={onLogout} />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-4">
+          <Button variant="ghost" size="sm" onClick={onBack}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+        </div>
+
         <Card>
           <CardHeader>
             <CardTitle>All Courses</CardTitle>
