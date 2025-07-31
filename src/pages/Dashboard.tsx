@@ -45,7 +45,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
   };
 
   if (currentPage === 'students') {
-    return <Students onBack={() => setCurrentPage('dashboard')} onLogout={onLogout} />;
+    return <Students onBack={() => setCurrentPage('dashboard')} />;
   }
 
   if (currentPage === 'courses') {
@@ -53,7 +53,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
   }
 
   if (currentPage === 'certifications') {
-    return <Certifications onBack={() => setCurrentPage('dashboard')} onLogout={onLogout} />;
+    return <Certifications onBack={() => setCurrentPage('dashboard')} />;
   }
 
   if (currentPage === 'pending-submissions') {

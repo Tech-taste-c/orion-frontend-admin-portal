@@ -1,9 +1,9 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, CheckCircle, XCircle, Award, Clock, User, Mail, Phone } from 'lucide-react';
 import { toast } from 'sonner';
+import Header from '@/components/Header';
 
 interface ExamResultsProps {
   submissionId: number;
@@ -131,32 +131,17 @@ const ExamResults = ({ submissionId, onBack }: ExamResultsProps) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
-            <Button
-              variant="ghost"
-              onClick={onBack}
-              className="mr-4"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Submissions
-            </Button>
-            <div className="flex items-center space-x-4">
-              <img 
-                src="/lovable-uploads/d7cf6600-6096-48ef-92ad-8a265d143985.png" 
-                alt="Orion Technical Solutions" 
-                className="h-8 w-auto"
-              />
-              <h1 className="text-xl font-semibold text-gray-900">Exam Results</h1>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header title="Exam Results" />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-4">
+          <Button variant="ghost" onClick={onBack}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Submissions
+          </Button>
+        </div>
+
         {/* Student and Exam Overview */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Student Details */}

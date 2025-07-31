@@ -173,7 +173,6 @@ const PendingSubmissions = ({ onBack, onLogout }: PendingSubmissionsProps) => {
       <ExamResults 
         submissionId={selectedSubmissionId} 
         onBack={() => setSelectedSubmissionId(null)}
-        onLogout={onLogout}
       />
     );
   }
