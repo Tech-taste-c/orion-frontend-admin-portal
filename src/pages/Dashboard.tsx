@@ -1,8 +1,10 @@
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, BookOpen, TrendingUp, Settings, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import Students from './Students';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -28,7 +30,6 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
   };
 
   if (currentPage === 'students') {
-    const Students = require('./Students').default;
     return <Students onBack={() => setCurrentPage('dashboard')} />;
   }
 
