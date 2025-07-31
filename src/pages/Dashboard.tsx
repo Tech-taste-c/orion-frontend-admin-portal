@@ -1,19 +1,14 @@
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, BookOpen, TrendingUp, Settings, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
-import { useState } from 'react';
-import Students from './Students';
-import Courses from './Courses';
-import Certifications from './Certifications';
 
 interface DashboardProps {
   onLogout: () => void;
 }
 
 const Dashboard = ({ onLogout }: DashboardProps) => {
-  const [currentPage, setCurrentPage] = useState<'dashboard' | 'students' | 'courses' | 'certifications'>('dashboard');
-
   const handleLogout = () => {
     toast.success('Logged out successfully');
     onLogout();
@@ -25,30 +20,6 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
     { title: 'Completion Rate', value: '87%', icon: TrendingUp, change: '+8%' },
     { title: 'Revenue', value: '$124K', icon: TrendingUp, change: '+15%' },
   ];
-
-  const handleManageStudents = () => {
-    setCurrentPage('students');
-  };
-
-  const handleManageCourses = () => {
-    setCurrentPage('courses');
-  };
-
-  const handleManageCertifications = () => {
-    setCurrentPage('certifications');
-  };
-
-  if (currentPage === 'students') {
-    return <Students onBack={() => setCurrentPage('dashboard')} />;
-  }
-
-  if (currentPage === 'courses') {
-    return <Courses onBack={() => setCurrentPage('dashboard')} />;
-  }
-
-  if (currentPage === 'certifications') {
-    return <Certifications onBack={() => setCurrentPage('dashboard')} />;
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -114,28 +85,21 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
               <CardDescription>Common administrative tasks</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button 
-                className="w-full justify-start bg-orion-blue hover:bg-orion-blue-dark"
-                onClick={handleManageStudents}
-              >
+              <Button className="w-full justify-start bg-orion-blue hover:bg-orion-blue-dark">
                 <Users className="h-4 w-4 mr-2" />
                 Manage Students
               </Button>
-              <Button 
-                className="w-full justify-start" 
-                variant="outline"
-                onClick={handleManageCourses}
-              >
+              <Button className="w-full justify-start" variant="outline">
                 <BookOpen className="h-4 w-4 mr-2" />
                 Course Management
               </Button>
-              <Button 
-                className="w-full justify-start" 
-                variant="outline"
-                onClick={handleManageCertifications}
-              >
+              <Button className="w-full justify-start" variant="outline">
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Certification Management
+              </Button>
+              <Button className="w-full justify-start" variant="outline">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Manage Pending Submissions
               </Button>
             </CardContent>
           </Card>
