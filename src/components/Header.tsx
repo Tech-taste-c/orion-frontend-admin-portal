@@ -29,10 +29,10 @@ const Header = ({ title, onLogout }: HeaderProps) => {
             <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm">
+            {/* <Button variant="ghost" size="sm">
               <Settings className="h-4 w-4 mr-2" />
               Settings
-            </Button>
+            </Button> */}
             {onLogout && (
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
