@@ -6,13 +6,14 @@ import { useState } from 'react';
 import Students from './Students';
 import Courses from './Courses';
 import Certifications from './Certifications';
+import PendingSubmissions from './PendingSubmissions';
 
 interface DashboardProps {
   onLogout: () => void;
 }
 
 const Dashboard = ({ onLogout }: DashboardProps) => {
-  const [currentPage, setCurrentPage] = useState<'dashboard' | 'students' | 'courses' | 'certifications'>('dashboard');
+  const [currentPage, setCurrentPage] = useState<'dashboard' | 'students' | 'courses' | 'certifications' | 'pending-submissions'>('dashboard');
 
   const handleLogout = () => {
     toast.success('Logged out successfully');
@@ -38,6 +39,10 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
     setCurrentPage('certifications');
   };
 
+  const handleManagePendingSubmissions = () => {
+    setCurrentPage('pending-submissions');
+  };
+
   if (currentPage === 'students') {
     return <Students onBack={() => setCurrentPage('dashboard')} />;
   }
@@ -48,6 +53,10 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
 
   if (currentPage === 'certifications') {
     return <Certifications onBack={() => setCurrentPage('dashboard')} />;
+  }
+
+  if (currentPage === 'pending-submissions') {
+    return <PendingSubmissions onBack={() => setCurrentPage('dashboard')} />;
   }
 
   return (
@@ -137,9 +146,13 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Certification Management
               </Button>
-              <Button className="w-full justify-start" variant="outline">
+              <Button 
+                className="w-full justify-start" 
+                variant="outline"
+                onClick={handleManagePendingSubmissions}
+              >
                 <TrendingUp className="h-4 w-4 mr-2" />
-                Manage Pending Submission
+                Manage Pending Submissions
               </Button>
             </CardContent>
           </Card>
