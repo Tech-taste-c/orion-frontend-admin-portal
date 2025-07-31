@@ -1,14 +1,16 @@
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, BookOpen, TrendingUp, Settings, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
+import { useState } from 'react';
 
 interface DashboardProps {
   onLogout: () => void;
 }
 
 const Dashboard = ({ onLogout }: DashboardProps) => {
+  const [currentPage, setCurrentPage] = useState<'dashboard' | 'students'>('dashboard');
+
   const handleLogout = () => {
     toast.success('Logged out successfully');
     onLogout();
@@ -20,6 +22,15 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
     { title: 'Completion Rate', value: '87%', icon: TrendingUp, change: '+8%' },
     { title: 'Revenue', value: '$124K', icon: TrendingUp, change: '+15%' },
   ];
+
+  const handleManageStudents = () => {
+    setCurrentPage('students');
+  };
+
+  if (currentPage === 'students') {
+    const Students = require('./Students').default;
+    return <Students onBack={() => setCurrentPage('dashboard')} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -85,7 +96,10 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
               <CardDescription>Common administrative tasks</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button className="w-full justify-start bg-orion-blue hover:bg-orion-blue-dark">
+              <Button 
+                className="w-full justify-start bg-orion-blue hover:bg-orion-blue-dark"
+                onClick={handleManageStudents}
+              >
                 <Users className="h-4 w-4 mr-2" />
                 Manage Students
               </Button>
