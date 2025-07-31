@@ -19,7 +19,7 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination';
 import { ArrowLeft, Search, Eye } from 'lucide-react';
-import { toast } from 'sonner';
+import ExamResults from './ExamResults';
 
 interface PendingSubmissionsProps {
   onBack: () => void;
@@ -37,7 +37,8 @@ interface Submission {
 const PendingSubmissions = ({ onBack }: PendingSubmissionsProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8; // Match the Courses page
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState<number | null>(null);
+  const itemsPerPage = 8;
 
   // Mock data for submissions - expanded to show pagination
   const mockSubmissions: Submission[] = [
@@ -152,7 +153,7 @@ const PendingSubmissions = ({ onBack }: PendingSubmissionsProps) => {
   const paginatedSubmissions = filteredSubmissions.slice(startIndex, endIndex);
 
   const handleViewResults = (submission: Submission) => {
-    toast.info(`Viewing results for ${submission.studentName} - ${submission.courseName}`);
+    setSelectedSubmissionId(submission.id);
   };
 
   const getStatusColor = (status: 'pass' | 'fail') => {
@@ -161,8 +162,18 @@ const PendingSubmissions = ({ onBack }: PendingSubmissionsProps) => {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1);
   };
+
+  // If a submission is selected, show the exam results page
+  if (selectedSubmissionId) {
+    return (
+      <ExamResults 
+        submissionId={selectedSubmissionId} 
+        onBack={() => setSelectedSubmissionId(null)} 
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -250,7 +261,7 @@ const PendingSubmissions = ({ onBack }: PendingSubmissionsProps) => {
               </Table>
             </div>
 
-            {/* Pagination - Using same style as Courses page */}
+            {/* Pagination */}
             {totalPages > 1 && (
               <div className="mt-6">
                 <Pagination>
