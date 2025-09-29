@@ -111,6 +111,12 @@ export interface Submission {
   };
 }
 
+export interface DashboardStats {
+  totalStudents: number;
+  activeCourses: number;
+  completionRate: number;
+}
+
 export interface ExamDetails {
   id: number;
   studentId: number;
@@ -392,6 +398,13 @@ class ApiService {
   async completeStudentCourse(studentId: number, courseId: number): Promise<ApiResponse<any>> {
     return this.request<any>(`/student-course/${studentId}/${courseId}/complete`, {
       method: 'PATCH',
+    });
+  }
+
+  // Dashboard endpoints
+  async getDashboardStats(): Promise<ApiResponse<DashboardStats>> {
+    return this.request<DashboardStats>('/admins/dashboard', {
+      method: 'GET',
     });
   }
 }

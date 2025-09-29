@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/Header';
+import { useState, useEffect } from 'react';
+import { apiService, DashboardStats } from '@/services/api';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -12,13 +14,39 @@ interface DashboardProps {
 
 const Dashboard = ({ onLogout }: DashboardProps) => {
   const navigate = useNavigate();
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const stats = [
-    { title: 'Total Students', value: '2,459', icon: Users, change: '+12%' },
-    { title: 'Active Courses', value: '48', icon: BookOpen, change: '+5%' },
-    { title: 'Completion Rate', value: '87%', icon: TrendingUp, change: '+8%' },
-    { title: 'Revenue', value: '$124K', icon: TrendingUp, change: '+15%' },
-  ];
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await apiService.getDashboardStats();
+        
+        if (response.success && response.data) {
+          setDashboardStats(response.data);
+        } else {
+          setError(response.error || 'Failed to fetch dashboard stats');
+          toast.error('Failed to load dashboard statistics');
+        }
+      } catch (err) {
+        setError('An unexpected error occurred');
+        toast.error('Failed to load dashboard statistics');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardStats();
+  }, []);
+
+  const stats = dashboardStats ? [
+    { title: 'Total Students', value: dashboardStats.totalStudents.toString(), icon: Users, change: null },
+    { title: 'Active Courses', value: dashboardStats.activeCourses.toString(), icon: BookOpen, change: null },
+    { title: 'Completion Rate', value: `${dashboardStats.completionRate}%`, icon: TrendingUp, change: null },
+  ] : [];
 
   const handleManageStudents = () => {
     navigate('/students');
@@ -49,24 +77,52 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow duration-200">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">
-                  {stat.title}
-                </CardTitle>
-                <stat.icon className="h-4 w-4 text-orion-blue" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {loading ? (
+            // Loading state
+            Array.from({ length: 3 }).map((_, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow duration-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">
+                    Loading...
+                  </CardTitle>
+                  <div className="h-4 w-4 bg-gray-200 rounded animate-pulse"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                </CardContent>
+              </Card>
+            ))
+          ) : error ? (
+            // Error state
+            <Card className="col-span-full">
+              <CardContent className="pt-6">
+                <div className="text-center text-red-600">
+                  <p className="text-lg font-medium">Failed to load dashboard statistics</p>
+                  <p className="text-sm text-gray-500 mt-1">{error}</p>
+                </div>
               </CardContent>
             </Card>
-          ))}
+          ) : (
+            // Stats display
+            stats.map((stat, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow duration-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">
+                    {stat.title}
+                  </CardTitle>
+                  <stat.icon className="h-4 w-4 text-orion-blue" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
           <Card>
             <CardHeader>
               <CardTitle>Quick Actions</CardTitle>
@@ -105,38 +161,6 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Manage Exam Submissions
               </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>Latest system updates</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-orion-blue rounded-full"></div>
-                  <div>
-                    <p className="text-sm font-medium">New student enrolled</p>
-                    <p className="text-xs text-gray-500">5 minutes ago</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <div>
-                    <p className="text-sm font-medium">Course completed</p>
-                    <p className="text-xs text-gray-500">1 hour ago</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                  <div>
-                    <p className="text-sm font-medium">System maintenance scheduled</p>
-                    <p className="text-xs text-gray-500">3 hours ago</p>
-                  </div>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </div>
