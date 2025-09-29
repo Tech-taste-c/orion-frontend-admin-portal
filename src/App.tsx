@@ -56,7 +56,7 @@ const AppRoutes = () => {
         path="/students" 
         element={
           <ProtectedRoute>
-            <Students onBack={handleBack} />
+            <Students onBack={handleBack} onLogout={handleLogout} />
           </ProtectedRoute>
         } 
       />

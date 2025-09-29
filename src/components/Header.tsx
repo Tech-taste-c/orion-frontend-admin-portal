@@ -9,10 +9,15 @@ interface HeaderProps {
 }
 
 const Header = ({ title, onLogout }: HeaderProps) => {
+  console.log('Header received onLogout:', !!onLogout, typeof onLogout);
+  
   const handleLogout = () => {
+    console.log('Logout button clicked, onLogout exists:', !!onLogout);
     if (onLogout) {
       toast.success('Logged out successfully');
       onLogout();
+    } else {
+      console.error('onLogout function is not available');
     }
   };
 

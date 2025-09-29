@@ -13,9 +13,10 @@ import AssignCourseModal from '@/components/AssignCourseModal';
 
 interface StudentsProps {
   onBack: () => void;
+  onLogout: () => void;
 }
 
-const Students = ({ onBack }: StudentsProps) => {
+const Students = ({ onBack, onLogout }: StudentsProps) => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -113,7 +114,7 @@ const Students = ({ onBack }: StudentsProps) => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header title="Student Management"/>
+        <Header title="Student Management" onLogout={onLogout}/>
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-6">
             <Button variant="ghost" size="sm" onClick={onBack}>
@@ -136,7 +137,7 @@ const Students = ({ onBack }: StudentsProps) => {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header title="Student Management"/>
+        <Header title="Student Management" onLogout={onLogout}/>
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-6">
             <Button variant="ghost" size="sm" onClick={onBack}>
@@ -161,7 +162,7 @@ const Students = ({ onBack }: StudentsProps) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header title="Student Management"/>
+      <Header title="Student Management" onLogout={onLogout}/>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
