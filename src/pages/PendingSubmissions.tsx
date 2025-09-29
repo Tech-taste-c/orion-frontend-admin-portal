@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,135 +18,63 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { ArrowLeft, Search, Eye } from 'lucide-react';
+import { ArrowLeft, Search, Eye, Loader2 } from 'lucide-react';
 import ExamResults from './ExamResults';
 import Header from '@/components/Header';
+import { apiService, Submission } from '@/services/api';
+import { toast } from 'sonner';
 
 interface PendingSubmissionsProps {
   onBack: () => void;
   onLogout: () => void;
 }
 
-interface Submission {
-  id: number;
-  courseName: string;
-  studentName: string;
-  status: 'pass' | 'fail';
-  score: number;
-  submittedDate: string;
-}
 
 const PendingSubmissions = ({ onBack, onLogout }: PendingSubmissionsProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<number | null>(null);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 8;
 
-  // Mock data for submissions - expanded to show pagination
-  const mockSubmissions: Submission[] = [
-    {
-      id: 1,
-      courseName: 'Web Development Fundamentals',
-      studentName: 'John Smith',
-      status: 'pass',
-      score: 85,
-      submittedDate: '2024-01-15',
-    },
-    {
-      id: 2,
-      courseName: 'React Advanced Concepts',
-      studentName: 'Sarah Johnson',
-      status: 'fail',
-      score: 58,
-      submittedDate: '2024-01-14',
-    },
-    {
-      id: 3,
-      courseName: 'Database Design',
-      studentName: 'Mike Wilson',
-      status: 'pass',
-      score: 92,
-      submittedDate: '2024-01-13',
-    },
-    {
-      id: 4,
-      courseName: 'API Development',
-      studentName: 'Emily Davis',
-      status: 'pass',
-      score: 78,
-      submittedDate: '2024-01-12',
-    },
-    {
-      id: 5,
-      courseName: 'Cloud Computing Basics',
-      studentName: 'David Brown',
-      status: 'fail',
-      score: 45,
-      submittedDate: '2024-01-11',
-    },
-    {
-      id: 6,
-      courseName: 'Mobile App Development',
-      studentName: 'Lisa Anderson',
-      status: 'pass',
-      score: 89,
-      submittedDate: '2024-01-10',
-    },
-    {
-      id: 7,
-      courseName: 'Web Development Fundamentals',
-      studentName: 'Robert Taylor',
-      status: 'pass',
-      score: 76,
-      submittedDate: '2024-01-09',
-    },
-    {
-      id: 8,
-      courseName: 'React Advanced Concepts',
-      studentName: 'Jennifer Martinez',
-      status: 'fail',
-      score: 52,
-      submittedDate: '2024-01-08',
-    },
-    {
-      id: 9,
-      courseName: 'Node.js Backend Development',
-      studentName: 'Michael Thompson',
-      status: 'pass',
-      score: 87,
-      submittedDate: '2024-01-07',
-    },
-    {
-      id: 10,
-      courseName: 'Python for Data Science',
-      studentName: 'Anna Rodriguez',
-      status: 'pass',
-      score: 94,
-      submittedDate: '2024-01-06',
-    },
-    {
-      id: 11,
-      courseName: 'Machine Learning Basics',
-      studentName: 'Chris Wilson',
-      status: 'fail',
-      score: 42,
-      submittedDate: '2024-01-05',
-    },
-    {
-      id: 12,
-      courseName: 'DevOps Fundamentals',
-      studentName: 'Jessica Lee',
-      status: 'pass',
-      score: 81,
-      submittedDate: '2024-01-04',
-    },
-  ];
+  // Fetch submissions from API
+  useEffect(() => {
+    const fetchSubmissions = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await apiService.getPendingSubmissions();
+        
+        if (response.success && response.data) {
+          setSubmissions(response.data);
+        } else {
+          setError(response.error || 'Failed to fetch submissions');
+          toast.error(response.error || 'Failed to fetch submissions');
+        }
+      } catch (err) {
+        const errorMessage = 'Network error. Please try again.';
+        setError(errorMessage);
+        toast.error(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSubmissions();
+  }, []);
 
   // Filter submissions based on search term
-  const filteredSubmissions = mockSubmissions.filter(submission =>
-    submission.courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    submission.studentName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredSubmissions = submissions.filter(submission => {
+    const courseName = submission.exam.course.title;
+    const studentName = `${submission.student.firstName} ${submission.student.lastName}`;
+    const examName = submission.exam.name;
+    
+    return courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           examName.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
@@ -158,8 +86,18 @@ const PendingSubmissions = ({ onBack, onLogout }: PendingSubmissionsProps) => {
     setSelectedSubmissionId(submission.id);
   };
 
-  const getStatusColor = (status: 'pass' | 'fail') => {
-    return status === 'pass' ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50';
+  const getStatusColor = (score: number | null, passMark: number) => {
+    if (score === null) {
+      return 'text-yellow-600 bg-yellow-50';
+    }
+    return score >= passMark ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50';
+  };
+
+  const getStatusText = (score: number | null, passMark: number) => {
+    if (score === null) {
+      return 'Pending';
+    }
+    return score >= passMark ? 'Pass' : 'Fail';
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -206,50 +144,71 @@ const PendingSubmissions = ({ onBack, onLogout }: PendingSubmissionsProps) => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Course Name</TableHead>
-                    <TableHead>Student Name</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Score</TableHead>
-                    <TableHead>Submitted Date</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedSubmissions.map((submission) => (
-                    <TableRow key={submission.id}>
-                      <TableCell className="font-medium">{submission.courseName}</TableCell>
-                      <TableCell>{submission.studentName}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(submission.status)}`}
-                        >
-                          {submission.status === 'pass' ? 'Pass' : 'Fail'}
-                        </span>
-                      </TableCell>
-                      <TableCell>{submission.score}%</TableCell>
-                      <TableCell>{submission.submittedDate}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewResults(submission)}
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Results
-                        </Button>
-                      </TableCell>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                <span>Loading submissions...</span>
+              </div>
+            ) : error ? (
+              <div className="text-center py-8">
+                <p className="text-red-600 mb-4">{error}</p>
+                <Button 
+                  onClick={() => window.location.reload()} 
+                  variant="outline"
+                >
+                  Try Again
+                </Button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Course Name</TableHead>
+                      <TableHead>Exam Name</TableHead>
+                      <TableHead>Student Name</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Score</TableHead>
+                      <TableHead>Submitted Date</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedSubmissions.map((submission) => (
+                      <TableRow key={submission.id}>
+                        <TableCell className="font-medium">{submission.exam.course.title}</TableCell>
+                        <TableCell>{submission.exam.name}</TableCell>
+                        <TableCell>{`${submission.student.firstName} ${submission.student.lastName}`}</TableCell>
+                        <TableCell>
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(submission.score, submission.exam.passMark)}`}
+                          >
+                            {getStatusText(submission.score, submission.exam.passMark)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          {submission.score !== null ? `${submission.score}%` : 'N/A'}
+                        </TableCell>
+                        <TableCell>{submission.takenAt}</TableCell>
+                        <TableCell>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewResults(submission)}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Results
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
 
             {/* Pagination */}
-            {totalPages > 1 && (
+            {!isLoading && !error && totalPages > 1 && (
               <div className="mt-6">
                 <Pagination>
                   <PaginationContent>
@@ -281,7 +240,7 @@ const PendingSubmissions = ({ onBack, onLogout }: PendingSubmissionsProps) => {
               </div>
             )}
 
-            {filteredSubmissions.length === 0 && (
+            {!isLoading && !error && filteredSubmissions.length === 0 && (
               <div className="text-center py-8">
                 <p className="text-gray-500">No submissions found.</p>
               </div>

@@ -1,53 +1,62 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from '@/components/ui/pagination';
-import { Search, UserX, ArrowLeft } from 'lucide-react';
+import { Search, UserX, UserCheck, ArrowLeft, Loader2, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import Header from '@/components/Header';
+import { apiService, Student } from '@/services/api';
+import AssignCourseModal from '@/components/AssignCourseModal';
 
-interface Student {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  certifications: number;
-  isActive: boolean;
-}
-
-// Mock data for demonstration
-const mockStudents: Student[] = [
-  { id: 1, name: 'John Smith', email: 'john.smith@email.com', phone: '(555) 123-4567', certifications: 3, isActive: true },
-  { id: 2, name: 'Sarah Johnson', email: 'sarah.j@email.com', phone: '(555) 234-5678', certifications: 2, isActive: true },
-  { id: 3, name: 'Michael Brown', email: 'mike.brown@email.com', phone: '(555) 345-6789', certifications: 5, isActive: true },
-  { id: 4, name: 'Emily Davis', email: 'emily.davis@email.com', phone: '(555) 456-7890', certifications: 1, isActive: true },
-  { id: 5, name: 'David Wilson', email: 'david.w@email.com', phone: '(555) 567-8901', certifications: 4, isActive: true },
-  { id: 6, name: 'Lisa Anderson', email: 'lisa.anderson@email.com', phone: '(555) 678-9012', certifications: 2, isActive: true },
-  { id: 7, name: 'Robert Taylor', email: 'rob.taylor@email.com', phone: '(555) 789-0123', certifications: 3, isActive: true },
-  { id: 8, name: 'Jennifer Martinez', email: 'jen.martinez@email.com', phone: '(555) 890-1234', certifications: 6, isActive: true },
-  { id: 9, name: 'Christopher Lee', email: 'chris.lee@email.com', phone: '(555) 901-2345', certifications: 1, isActive: true },
-  { id: 10, name: 'Amanda Garcia', email: 'amanda.garcia@email.com', phone: '(555) 012-3456', certifications: 4, isActive: true },
-  { id: 11, name: 'James Rodriguez', email: 'james.r@email.com', phone: '(555) 123-4567', certifications: 2, isActive: true },
-  { id: 12, name: 'Michelle White', email: 'michelle.w@email.com', phone: '(555) 234-5678', certifications: 3, isActive: true },
-];
 
 interface StudentsProps {
   onBack: () => void;
 }
 
 const Students = ({ onBack }: StudentsProps) => {
-  const [students, setStudents] = useState<Student[]>(mockStudents);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const studentsPerPage = 10;
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+
+  // Fetch students from API
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await apiService.getStudents();
+      
+      if (response.success && response.data) {
+        setStudents(response.data);
+      } else {
+        setError(response.error || 'Failed to fetch students');
+        toast.error(response.error || 'Failed to fetch students');
+      }
+    } catch (err) {
+      const errorMessage = 'An unexpected error occurred';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
 
   // Filter students based on search term
-  const filteredStudents = students.filter(student =>
-    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStudents = students.filter(student => {
+    const fullName = `${student.firstName} ${student.lastName}`.toLowerCase();
+    return fullName.includes(searchTerm.toLowerCase()) ||
+           student.email.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
@@ -55,19 +64,100 @@ const Students = ({ onBack }: StudentsProps) => {
   const endIndex = startIndex + studentsPerPage;
   const currentStudents = filteredStudents.slice(startIndex, endIndex);
 
-  const handleDeactivateStudent = (studentId: number) => {
-    setStudents(prev => prev.map(student => 
-      student.id === studentId 
-        ? { ...student, isActive: false }
-        : student
-    ));
+  const handleToggleStudentStatus = async (studentId: number) => {
     const student = students.find(s => s.id === studentId);
-    toast.success(`${student?.name} has been deactivated`);
+    if (!student) return;
+
+    const newStatus = student.status === 'active' ? 'inactive' : 'active';
+    const action = newStatus === 'active' ? 'activated' : 'deactivated';
+
+    try {
+      const response = await apiService.updateStudentStatus(studentId, newStatus);
+      
+      if (response.success && response.data) {
+        // Update the student in the local state
+        setStudents(prev => prev.map(student => 
+          student.id === studentId 
+            ? { ...student, status: newStatus }
+            : student
+        ));
+        toast.success(`${student.firstName} ${student.lastName} has been ${action}`);
+      } else {
+        toast.error(response.error || `Failed to ${action} student`);
+      }
+    } catch (err) {
+      toast.error(`Failed to ${action} student`);
+    }
   };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
+
+  const handleAssignCourse = (student: Student) => {
+    setSelectedStudent(student);
+    setIsAssignModalOpen(true);
+  };
+
+  const handleAssignModalClose = () => {
+    setIsAssignModalOpen(false);
+    setSelectedStudent(null);
+  };
+
+  const handleAssignSuccess = () => {
+    // Refresh the students list to show updated course assignments
+    fetchStudents();
+  };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header title="Student Management"/>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-6">
+            <Button variant="ghost" size="sm" onClick={onBack}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </div>
+          <div className="flex items-center justify-center py-12">
+            <div className="flex items-center space-x-2">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span>Loading students...</span>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header title="Student Management"/>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-6">
+            <Button variant="ghost" size="sm" onClick={onBack}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </div>
+          <Card>
+            <CardContent className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <p className="text-red-600 mb-4">{error}</p>
+                <Button onClick={() => window.location.reload()}>
+                  Try Again
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -113,7 +203,7 @@ const Students = ({ onBack }: StudentsProps) => {
                     <TableHead>Student Name</TableHead>
                     <TableHead>Email Address</TableHead>
                     <TableHead className="hidden sm:table-cell">Phone Number</TableHead>
-                    <TableHead className="text-center">Certifications</TableHead>
+                    <TableHead className="hidden md:table-cell">Enrolled Courses</TableHead>
                     <TableHead className="text-center">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -126,29 +216,48 @@ const Students = ({ onBack }: StudentsProps) => {
                     </TableRow>
                   ) : (
                     currentStudents.map((student) => (
-                      <TableRow key={student.id} className={!student.isActive ? 'opacity-50' : ''}>
-                        <TableCell className="font-medium">{student.name}</TableCell>
+                      <TableRow key={student.id} className={student.status === 'inactive' ? 'opacity-50' : ''}>
+                        <TableCell className="font-medium">{`${student.firstName} ${student.lastName}`}</TableCell>
                         <TableCell>{student.email}</TableCell>
                         <TableCell className="hidden sm:table-cell">{student.phone}</TableCell>
-                        <TableCell className="text-center">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orion-blue/10 text-orion-blue">
-                            {student.certifications}
+                        <TableCell className="hidden md:table-cell text-center">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            {student.studentCourses.length}
                           </span>
                         </TableCell>
                         <TableCell className="text-center">
-                          {student.isActive ? (
+                          <div className="flex items-center justify-center space-x-2">
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleDeactivateStudent(student.id)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => handleAssignCourse(student)}
+                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                             >
-                              <UserX className="h-4 w-4 mr-1" />
-                              <span className="hidden sm:inline">Deactivate</span>
+                              <BookOpen className="h-4 w-4 mr-1" />
+                              <span className="hidden sm:inline">Assign Course</span>
                             </Button>
-                          ) : (
-                            <span className="text-sm text-gray-500">Inactive</span>
-                          )}
+                            {student.status === 'active' ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleToggleStudentStatus(student.id)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <UserX className="h-4 w-4 mr-1" />
+                                <span className="hidden sm:inline">Deactivate</span>
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleToggleStudentStatus(student.id)}
+                                className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                              >
+                                <UserCheck className="h-4 w-4 mr-1" />
+                                <span className="hidden sm:inline">Activate</span>
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
@@ -247,6 +356,14 @@ const Students = ({ onBack }: StudentsProps) => {
           </CardContent>
         </Card>
       </main>
+
+      {/* Assign Course Modal */}
+      <AssignCourseModal
+        isOpen={isAssignModalOpen}
+        onClose={handleAssignModalClose}
+        student={selectedStudent}
+        onSuccess={handleAssignSuccess}
+      />
     </div>
   );
 };

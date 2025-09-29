@@ -1,44 +1,70 @@
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
+import { validateSignInForm, ValidationError } from '@/utils/validation';
 
 interface LoginFormProps {
-  onLogin: () => void;
+  onLogin?: () => void;
 }
 
 export const LoginForm = ({ onLogin }: LoginFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<ValidationError[]>([]);
+  const { signIn, isLoading } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
-      toast.error('Please fill in all fields');
+    // Clear previous errors
+    setErrors([]);
+    
+    // Validate form
+    const validationErrors = validateSignInForm(email, password);
+    if (validationErrors.length > 0) {
+      setErrors(validationErrors);
+      toast.error('Please fix the errors below', {
+        style: {
+          background: '#ef4444',
+          color: 'white',
+          border: '1px solid #dc2626'
+        }
+      });
       return;
     }
 
-    setIsLoading(true);
+    // Attempt sign in
+    const result = await signIn({ email, password });
     
-    // Simulate API call
-    setTimeout(() => {
-      if (email && password) {
-        toast.success('Login successful! Redirecting...');
-        setTimeout(() => {
-          onLogin();
-        }, 1000);
-      } else {
-        toast.error('Invalid credentials');
-      }
-      setIsLoading(false);
-    }, 1500);
+    if (result.success) {
+      toast.success(result.message || 'Login successful! Redirecting...');
+      // Small delay to show the success message before navigation
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
+    } else {
+      toast.error(result.message || 'Invalid credentials. Please try again.', {
+        style: {
+          background: '#ef4444',
+          color: 'white',
+          border: '1px solid #dc2626'
+        }
+      });
+    }
+  };
+
+  const getFieldError = (field: string): string | null => {
+    const error = errors.find(err => err.field === field);
+    return error ? error.message : null;
   };
 
   return (
@@ -68,13 +94,18 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@oriontech.com"
+                placeholder="admin@orion.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-10 h-12 border-gray-200 focus:border-orion-blue focus:ring-orion-blue/20"
+                className={`pl-10 h-12 border-gray-200 focus:border-orion-blue focus:ring-orion-blue/20 ${
+                  getFieldError('email') ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                }`}
                 required
               />
             </div>
+            {getFieldError('email') && (
+              <p className="text-sm text-red-600 mt-1">{getFieldError('email')}</p>
+            )}
           </div>
           
           <div className="space-y-2">
@@ -89,7 +120,9 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-10 pr-10 h-12 border-gray-200 focus:border-orion-blue focus:ring-orion-blue/20"
+                className={`pl-10 pr-10 h-12 border-gray-200 focus:border-orion-blue focus:ring-orion-blue/20 ${
+                  getFieldError('password') ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                }`}
                 required
               />
               <button
@@ -100,6 +133,9 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+            {getFieldError('password') && (
+              <p className="text-sm text-red-600 mt-1">{getFieldError('password')}</p>
+            )}
           </div>
         </CardContent>
         

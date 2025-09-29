@@ -1,11 +1,7 @@
 
 import { LoginForm } from '@/components/LoginForm';
 
-interface LoginProps {
-  onLogin: () => void;
-}
-
-const Login = ({ onLogin }: LoginProps) => {
+const Login = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orion-blue-light/10 via-white to-orion-blue/10 flex items-center justify-center p-4">
       {/* Animated background elements */}
@@ -15,7 +11,7 @@ const Login = ({ onLogin }: LoginProps) => {
       </div>
       
       <div className="relative z-10 w-full max-w-md animate-fade-in">
-        <LoginForm onLogin={onLogin} />
+        <LoginForm />
       </div>
       
       {/* Footer */}

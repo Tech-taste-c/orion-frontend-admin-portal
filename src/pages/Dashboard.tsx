@@ -2,11 +2,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, BookOpen, TrendingUp, Settings, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
-import { useState } from 'react';
-import Students from './Students';
-import Courses from './Courses';
-import Certifications from './Certifications';
-import PendingSubmissions from './PendingSubmissions';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/Header';
 
 interface DashboardProps {
@@ -14,12 +11,7 @@ interface DashboardProps {
 }
 
 const Dashboard = ({ onLogout }: DashboardProps) => {
-  const [currentPage, setCurrentPage] = useState<'dashboard' | 'students' | 'courses' | 'certifications' | 'pending-submissions'>('dashboard');
-
-  const handleLogout = () => {
-    toast.success('Logged out successfully');
-    onLogout();
-  };
+  const navigate = useNavigate();
 
   const stats = [
     { title: 'Total Students', value: '2,459', icon: Users, change: '+12%' },
@@ -29,36 +21,20 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
   ];
 
   const handleManageStudents = () => {
-    setCurrentPage('students');
+    navigate('/students');
   };
 
   const handleManageCourses = () => {
-    setCurrentPage('courses');
+    navigate('/courses');
   };
 
   const handleManageCertifications = () => {
-    setCurrentPage('certifications');
+    navigate('/certifications');
   };
 
   const handleManagePendingSubmissions = () => {
-    setCurrentPage('pending-submissions');
+    navigate('/pending-submissions');
   };
-
-  if (currentPage === 'students') {
-    return <Students onBack={() => setCurrentPage('dashboard')} />;
-  }
-
-  if (currentPage === 'courses') {
-    return <Courses onBack={() => setCurrentPage('dashboard')} onLogout={onLogout} />;
-  }
-
-  if (currentPage === 'certifications') {
-    return <Certifications onBack={() => setCurrentPage('dashboard')} />;
-  }
-
-  if (currentPage === 'pending-submissions') {
-    return <PendingSubmissions onBack={() => setCurrentPage('dashboard')} onLogout={onLogout} />;
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -84,9 +60,6 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-                <p className="text-xs text-green-600 font-medium">
-                  {stat.change} from last month
-                </p>
               </CardContent>
             </Card>
           ))}
@@ -101,10 +74,11 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
             </CardHeader>
             <CardContent className="space-y-3">
               <Button 
-                className="w-full justify-start bg-orion-blue hover:bg-orion-blue-dark"
+                className="w-full justify-start" 
+                variant="outline"
                 onClick={handleManageStudents}
               >
-                <Users className="h-4 w-4 mr-2" />
+                <BookOpen className="h-4 w-4 mr-2" />
                 Manage Students
               </Button>
               <Button 
@@ -115,21 +89,21 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                 <BookOpen className="h-4 w-4 mr-2" />
                 Course Management
               </Button>
-              <Button 
+              {/* <Button 
                 className="w-full justify-start" 
                 variant="outline"
                 onClick={handleManageCertifications}
               >
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Certification Management
-              </Button>
+              </Button> */}
               <Button 
                 className="w-full justify-start" 
                 variant="outline"
                 onClick={handleManagePendingSubmissions}
               >
                 <TrendingUp className="h-4 w-4 mr-2" />
-                Manage Pending Submissions
+                Manage Exam Submissions
               </Button>
             </CardContent>
           </Card>

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Plus, Trash2, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { apiService, CreateCertificateRequest, CreateExamRequest, ExamQuestion, ExamOption, Course } from '@/services/api';
 
 interface CreateCertificationProps {
   onBack: () => void;
@@ -25,13 +27,15 @@ interface Question {
   answers: Answer[];
 }
 
-const mockCourses = [
-  { id: 1, name: 'Advanced JavaScript' },
-  { id: 2, name: 'React Development' },
-  { id: 3, name: 'Database Design' },
-  { id: 4, name: 'Web Security Fundamentals' },
-  { id: 5, name: 'Python for Beginners' },
-];
+interface FormErrors {
+  certificationName?: string;
+  selectedCourse?: string;
+  passMark?: string;
+  timeLimit?: string;
+  questions?: string;
+}
+
+// Remove mock courses - will fetch from API
 
 const CreateCertification = ({ onBack }: CreateCertificationProps) => {
   const [certificationName, setCertificationName] = useState('');
@@ -41,15 +45,90 @@ const CreateCertification = ({ onBack }: CreateCertificationProps) => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [passMark, setPassMark] = useState(70);
   const [timeLimit, setTimeLimit] = useState(60);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [coursesLoading, setCoursesLoading] = useState(true);
+  const navigate = useNavigate();
+
+  // Fetch courses on component mount
+  useEffect(() => {
+    fetchCourses();
+  }, []);
+
+  const fetchCourses = async () => {
+    try {
+      setCoursesLoading(true);
+      const response = await apiService.getCourses();
+      if (response.success && response.data) {
+        setCourses(response.data);
+      } else {
+        toast.error('Failed to fetch courses');
+        setCourses([]);
+      }
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      toast.error('An error occurred while fetching courses');
+      setCourses([]);
+    } finally {
+      setCoursesLoading(false);
+    }
+  };
+
+  const validateBasicForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (!certificationName.trim()) {
+      newErrors.certificationName = 'Certification name is required';
+    } else if (certificationName.trim().length < 3) {
+      newErrors.certificationName = 'Certification name must be at least 3 characters';
+    }
+
+    if (!selectedCourse) {
+      newErrors.selectedCourse = 'Please select a course';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateExamForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (passMark < 1 || passMark > 100) {
+      newErrors.passMark = 'Pass mark must be between 1 and 100';
+    }
+
+    if (timeLimit < 1) {
+      newErrors.timeLimit = 'Time limit must be at least 1 minute';
+    }
+
+    if (questions.length === 0) {
+      newErrors.questions = 'At least one question is required';
+    } else {
+      const hasIncompleteQuestions = questions.some(q => 
+        !q.question.trim() || 
+        q.answers.some(a => !a.text.trim()) ||
+        !q.answers.some(a => a.isCorrect)
+      );
+
+      if (hasIncompleteQuestions) {
+        newErrors.questions = 'All questions must be complete and have at least one correct answer';
+      }
+    }
+
+    setErrors(prev => ({ ...prev, ...newErrors }));
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleCreateExam = () => {
-    if (!certificationName || !selectedCourse) {
-      toast.error('Please fill in certification name and select a course first');
-      return;
+    if (validateBasicForm()) {
+      setShowExamBuilder(true);
+      // Add initial question
+      addQuestion();
+    } else {
+      toast.error('Please fix the errors below');
     }
-    setShowExamBuilder(true);
-    // Add initial question
-    addQuestion();
   };
 
   const addQuestion = () => {
@@ -127,25 +206,82 @@ const CreateCertification = ({ onBack }: CreateCertificationProps) => {
     }));
   };
 
-  const handlePublish = () => {
-    if (questions.length === 0) {
-      toast.error('Please add at least one question to the exam');
+  const generateCertId = (): string => {
+    const year = new Date().getFullYear();
+    const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    return `ORN-${certificationName.substring(0, 3).toUpperCase()}-${year}-${randomNum}`;
+  };
+
+  const convertQuestionsToAPIFormat = (): ExamQuestion[] => {
+    return questions.map(q => ({
+      questionText: q.question.trim(),
+      marks: 5, // Default marks per question
+      options: q.answers.map(a => ({
+        optionText: a.text.trim(),
+        isCorrect: a.isCorrect
+      }))
+    }));
+  };
+
+  const handlePublish = async () => {
+    // Validate basic form first
+    if (!validateBasicForm()) {
+      toast.error('Please fix the basic form errors');
       return;
     }
 
-    const hasIncompleteQuestions = questions.some(q => 
-      !q.question.trim() || 
-      q.answers.some(a => !a.text.trim()) ||
-      !q.answers.some(a => a.isCorrect)
-    );
-
-    if (hasIncompleteQuestions) {
-      toast.error('Please complete all questions and ensure each has a correct answer');
+    // Validate exam form
+    if (!validateExamForm()) {
+      toast.error('Please fix the exam form errors');
       return;
     }
 
-    toast.success('Certification and exam published successfully!');
-    onBack();
+    setIsLoading(true);
+
+    try {
+      // Generate certificate ID
+      const certId = generateCertId();
+      const courseId = parseInt(selectedCourse);
+
+      // Create certificate
+      const certificateData: CreateCertificateRequest = {
+        certId,
+        certName: certificationName.trim(),
+        courseId
+      };
+
+      const certificateResponse = await apiService.createCertificate(certificateData);
+
+      if (!certificateResponse.success) {
+        toast.error(certificateResponse.error || 'Failed to create certificate');
+        return;
+      }
+
+      // Create exam
+      const examData: CreateExamRequest = {
+        name: `${certificationName.trim()} Exam`,
+        courseId,
+        passMark,
+        createdBy: 1, // Assuming admin user ID is 1
+        duration: timeLimit,
+        questions: convertQuestionsToAPIFormat()
+      };
+
+      const examResponse = await apiService.createExam(examData);
+
+      if (!examResponse.success) {
+        toast.error(examResponse.error || 'Failed to create exam');
+        return;
+      }
+
+      toast.success('Certification and exam created successfully!');
+      onBack(); // Navigate back to certifications list
+    } catch (error) {
+      console.error('Error creating certification:', error);
+      toast.error('An error occurred while creating the certification');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -175,29 +311,63 @@ const CreateCertification = ({ onBack }: CreateCertificationProps) => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="cert-name">Certification Name</Label>
+                <Label htmlFor="cert-name">Certification Name *</Label>
                 <Input
                   id="cert-name"
                   placeholder="Enter certification name..."
                   value={certificationName}
-                  onChange={(e) => setCertificationName(e.target.value)}
+                  onChange={(e) => {
+                    setCertificationName(e.target.value);
+                    if (errors.certificationName) {
+                      setErrors(prev => ({ ...prev, certificationName: undefined }));
+                    }
+                  }}
+                  className={errors.certificationName ? 'border-red-500' : ''}
                 />
+                {errors.certificationName && (
+                  <p className="text-sm text-red-600">{errors.certificationName}</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="course-select">Related Course</Label>
-                <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a course..." />
+                <Label htmlFor="course-select">Related Course *</Label>
+                <Select 
+                  value={selectedCourse} 
+                  onValueChange={(value) => {
+                    setSelectedCourse(value);
+                    if (errors.selectedCourse) {
+                      setErrors(prev => ({ ...prev, selectedCourse: undefined }));
+                    }
+                  }}
+                  disabled={coursesLoading}
+                >
+                  <SelectTrigger className={errors.selectedCourse ? 'border-red-500' : ''}>
+                    <SelectValue placeholder={coursesLoading ? "Loading courses..." : "Select a course..."} />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockCourses.map((course) => (
-                      <SelectItem key={course.id} value={course.id.toString()}>
-                        {course.name}
+                    {coursesLoading ? (
+                      <SelectItem value="loading" disabled>
+                        Loading courses...
                       </SelectItem>
-                    ))}
+                    ) : courses.length > 0 ? (
+                      courses.map((course) => (
+                        <SelectItem key={course.id} value={course.id.toString()}>
+                          {course.title}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-courses" disabled>
+                        No courses available
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
+                {errors.selectedCourse && (
+                  <p className="text-sm text-red-600">{errors.selectedCourse}</p>
+                )}
+                {coursesLoading && (
+                  <p className="text-sm text-gray-500">Loading courses...</p>
+                )}
               </div>
 
               <div className="flex items-center space-x-2">
@@ -227,25 +397,43 @@ const CreateCertification = ({ onBack }: CreateCertificationProps) => {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="pass-mark">Pass Mark (%)</Label>
+                      <Label htmlFor="pass-mark">Pass Mark (%) *</Label>
                       <Input
                         id="pass-mark"
                         type="number"
                         min="1"
                         max="100"
                         value={passMark}
-                        onChange={(e) => setPassMark(Number(e.target.value))}
+                        onChange={(e) => {
+                          setPassMark(Number(e.target.value));
+                          if (errors.passMark) {
+                            setErrors(prev => ({ ...prev, passMark: undefined }));
+                          }
+                        }}
+                        className={errors.passMark ? 'border-red-500' : ''}
                       />
+                      {errors.passMark && (
+                        <p className="text-sm text-red-600">{errors.passMark}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="time-limit">Time Limit (minutes)</Label>
+                      <Label htmlFor="time-limit">Time Limit (minutes) *</Label>
                       <Input
                         id="time-limit"
                         type="number"
                         min="1"
                         value={timeLimit}
-                        onChange={(e) => setTimeLimit(Number(e.target.value))}
+                        onChange={(e) => {
+                          setTimeLimit(Number(e.target.value));
+                          if (errors.timeLimit) {
+                            setErrors(prev => ({ ...prev, timeLimit: undefined }));
+                          }
+                        }}
+                        className={errors.timeLimit ? 'border-red-500' : ''}
                       />
+                      {errors.timeLimit && (
+                        <p className="text-sm text-red-600">{errors.timeLimit}</p>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -327,10 +515,27 @@ const CreateCertification = ({ onBack }: CreateCertificationProps) => {
                     </div>
                   ))}
 
+                  {errors.questions && (
+                    <div className="pt-2">
+                      <p className="text-sm text-red-600">{errors.questions}</p>
+                    </div>
+                  )}
+
                   {questions.length > 0 && (
                     <div className="pt-4 border-t">
-                      <Button onClick={handlePublish} className="w-full bg-green-600 hover:bg-green-700">
-                        Publish Certification & Exam
+                      <Button 
+                        onClick={handlePublish} 
+                        disabled={isLoading}
+                        className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50"
+                      >
+                        {isLoading ? (
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <span>Creating...</span>
+                          </div>
+                        ) : (
+                          'Publish Certification & Exam'
+                        )}
                       </Button>
                     </div>
                   )}

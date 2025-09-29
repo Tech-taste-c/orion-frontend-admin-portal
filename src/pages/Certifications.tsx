@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import { ArrowLeft, Search, Eye, EyeOff, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import CreateCertification from './CreateCertification';
 import Header from '@/components/Header';
+import { useAuth } from '@/hooks/useAuth';
 
 interface CertificationsProps {
   onBack: () => void;
@@ -44,6 +46,8 @@ const Certifications = ({ onBack }: CertificationsProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const certificatesPerPage = 8;
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   // Filter certificates based on search term
   const filteredCertificates = certificates.filter(certificate =>
@@ -88,18 +92,28 @@ const Certifications = ({ onBack }: CertificationsProps) => {
     setShowCreateForm(false);
   };
 
+  const handleBack = () => {
+    navigate('/dashboard');
+  };
+
+  const handleLogout = () => {
+    signOut();
+    toast.success('Logged out successfully');
+    navigate('/login');
+  };
+
   if (showCreateForm) {
     return <CreateCertification onBack={handleBackToList} />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header title="Certification Management" onLogout={() => {}} />
+      <Header title="Certification Management" onLogout={handleLogout} />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-6">
-          <Button variant="ghost" size="sm" onClick={onBack}>
+          <Button variant="ghost" size="sm" onClick={handleBack}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
