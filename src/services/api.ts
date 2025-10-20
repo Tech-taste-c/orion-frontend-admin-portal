@@ -380,7 +380,7 @@ class ApiService {
   // Certificate endpoints
   async grantCertificate(data: {
     studentId: number;
-    certId: string;
+    certId: number;
     issuedBy: number;
     score: number;
   }): Promise<ApiResponse<any>> {

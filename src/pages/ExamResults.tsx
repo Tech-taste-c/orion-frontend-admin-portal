@@ -82,7 +82,7 @@ const ExamResults = ({ submissionId, onBack }: ExamResultsProps) => {
       // API 1: Grant certificate
       const grantResponse = await apiService.grantCertificate({
         studentId: examData.studentId,
-        certId: examData.certificate.certId,
+        certId: examData.certificate.id,
         issuedBy: user.id,
         score: examData.score
       });
