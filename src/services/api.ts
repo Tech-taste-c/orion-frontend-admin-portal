@@ -192,23 +192,18 @@ export interface ExamDetails {
   }[];
   certificate: {
     id: number;
-    studentId: number;
-    certId: number;
+    certId: string;
+    certName: string;
+    courseId: number;
     issuedAt?: string;
     issuedBy?: number;
-    score: number;
-    certificate: {
-      id: number;
-      certId: string;
-      certName: string;
-      courseId: number;
-    };
+    score?: number;
     admin?: {
       firstName: string;
       lastName: string;
       email: string;
     };
-  };
+  } | null;
 }
 
 class ApiService {
@@ -385,7 +380,7 @@ class ApiService {
   // Certificate endpoints
   async grantCertificate(data: {
     studentId: number;
-    certId: number;
+    certId: string;
     issuedBy: number;
     score: number;
   }): Promise<ApiResponse<any>> {

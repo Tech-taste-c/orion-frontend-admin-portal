@@ -71,7 +71,7 @@ const ExamResults = ({ submissionId, onBack }: ExamResultsProps) => {
   const status = score >= passMark ? 'pass' : 'fail';
   
   // Check if certificate has already been issued
-  const isCertificateIssued = examData?.certificate?.issuedAt && examData?.certificate?.issuedBy;
+  const isCertificateIssued = !!(examData?.certificate?.issuedAt && examData?.certificate?.issuedBy);
 
   const handleIssueCertificate = async () => {
     if (!examData || !user) return;
@@ -258,7 +258,7 @@ const ExamResults = ({ submissionId, onBack }: ExamResultsProps) => {
                       <div className="flex items-center space-x-2">
                         <Award className={`h-4 w-4 ${isCertificateIssued ? 'text-green-600' : 'text-blue-600'}`} />
                         <span className={`text-sm font-medium ${isCertificateIssued ? 'text-green-800' : 'text-blue-800'}`}>
-                          Certificate: {examData.certificate.certificate.certName} ({examData.certificate.certificate.certId})
+                          Certificate: {(examData.certificate as any).certName} ({(examData.certificate as any).certId})
                         </span>
                       </div>
                       {isCertificateIssued && examData.certificate.admin && (
