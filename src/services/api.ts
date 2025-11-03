@@ -33,6 +33,7 @@ export interface Course {
   status: 'active' | 'inactive';
   cost: number;
   duration: number;
+  courseDetailPageLink?: string;
   createdAt: string;
 }
 
@@ -43,6 +44,7 @@ export interface CreateCourseRequest {
   status: 'active' | 'inactive';
   cost: number;
   duration: number;
+  courseDetailPageLink?: string;
 }
 
 export interface UpdateCourseRequest {
@@ -52,6 +54,7 @@ export interface UpdateCourseRequest {
   description?: string;
   cost?: number;
   duration?: number;
+  courseDetailPageLink?: string;
 }
 
 export interface CreateCertificateRequest {
@@ -343,26 +346,7 @@ class ApiService {
     });
   }
 
-  async createCourse(courseData: CreateCourseRequest): Promise<ApiResponse<Course>> {
-    return this.request<Course>('/courses', {
-      method: 'POST',
-      body: JSON.stringify(courseData),
-    });
-  }
-
-  async createCertificate(certificateData: CreateCertificateRequest): Promise<ApiResponse<any>> {
-    return this.request<any>('/certificates', {
-      method: 'POST',
-      body: JSON.stringify(certificateData),
-    });
-  }
-
-  async createExam(examData: CreateExamRequest): Promise<ApiResponse<any>> {
-    return this.request<any>('/exams', {
-      method: 'POST',
-      body: JSON.stringify(examData),
-    });
-  }
+  
 
   // Submission endpoints
   async getPendingSubmissions(): Promise<ApiResponse<Submission[]>> {

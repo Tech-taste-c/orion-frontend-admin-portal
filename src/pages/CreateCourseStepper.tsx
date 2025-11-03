@@ -19,6 +19,7 @@ interface CourseFormData {
   status: 'active' | 'inactive';
   cost: number;
   duration: number;
+  courseDetailPageLink?: string;
 }
 
 interface CertificateFormData {
@@ -63,7 +64,8 @@ const CreateCourseStepper = ({ onBack, onLogout }: CreateCourseStepperProps) => 
     description: '',
     status: 'active',
     cost: 0,
-    duration: 0
+    duration: 0,
+    courseDetailPageLink: ''
   });
   
   const [certificateData, setCertificateData] = useState<CertificateFormData>({
@@ -441,6 +443,17 @@ const CreateCourseStepper = ({ onBack, onLogout }: CreateCourseStepperProps) => 
             onChange={(e) => handleCourseDataChange('description', e.target.value)}
             placeholder="Describe what students will learn in this course"
             rows={3}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="courseUrl">Course URL (optional)</Label>
+          <Input
+            id="courseUrl"
+            type="url"
+            value={courseData.courseDetailPageLink || ''}
+            onChange={(e) => handleCourseDataChange('courseDetailPageLink', e.target.value)}
+            placeholder="https://example.com/courses/your-course"
           />
         </div>
 
